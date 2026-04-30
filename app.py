@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from sklearn.datasets import load_iris
 from sklearn.tree import DecisionTreeClassifier
 import numpy as np
@@ -11,12 +11,25 @@ model = DecisionTreeClassifier(random_state=42)
 model.fit(iris.data, iris.target)
 class_names = ["setosa", "versicolor", "virginica"]
 
-@app.get("/health")
-async def health():
+# ✅ Root (VERY IMPORTANT)
+@app.get("/")
+def root():
     return {"status": "ok"}
 
+# ✅ Health (both versions)
+@app.get("/health")
+@app.get("/health/")
+def health():
+    return {"status": "ok"}
+
+# ✅ Predict (strict params)
 @app.get("/predict")
-async def predict(sl: float, sw: float, pl: float, pw: float):
+def predict(
+    sl: float = Query(...),
+    sw: float = Query(...),
+    pl: float = Query(...),
+    pw: float = Query(...)
+):
     features = np.array([[sl, sw, pl, pw]])
     pred = int(model.predict(features)[0])
     return {"prediction": pred, "class_name": class_names[pred]}
